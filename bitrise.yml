@@ -1,0 +1,27 @@
+format_version: '11'
+default_step_lib_source: https://github.com/bitrise-io/bitrise-steplib.git
+
+project_type: ios
+
+app:
+  envs:
+  - opts:
+      is_expand: true
+    BITRISE_PROJECT_PATH: TestGit.xcodeproj
+    BITRISE_SCHEME: TestGit
+
+workflows:
+  primary:
+    steps:
+    - activate-ssh-key@4:
+        run_if: '{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}'
+    - git-clone@7: {}
+    - cache-pull@2: {}
+    - install-missing-standalone-tools@3: {}
+    - xcode-test@4:
+        inputs:
+        - project_path: "$BITRISE_PROJECT_PATH"
+        - scheme: "$BITRISE_SCHEME"
+    - cache-push@2: {}
+    - deploy-to-bitrise-io@2: {}
+
