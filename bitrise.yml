@@ -1,27 +1,54 @@
-format_version: '11'
+---
+format_version: '23'
 default_step_lib_source: https://github.com/bitrise-io/bitrise-steplib.git
-
 project_type: ios
-
-app:
-  envs:
-  - opts:
-      is_expand: true
-    BITRISE_PROJECT_PATH: TestGit.xcodeproj
-    BITRISE_SCHEME: TestGit
-
 workflows:
-  primary:
+  archive_and_export_app:
+    summary: Create an IPA file to install your app on a device or share it with
+      your team.
+    description: The workflow will first clone your Git repository, cache and
+      install your project's dependencies if any, export an IPA file from the
+      project and save it.
     steps:
-    - activate-ssh-key@4:
-        run_if: '{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}'
-    - git-clone@7: {}
-    - cache-pull@2: {}
-    - install-missing-standalone-tools@3: {}
-    - xcode-test@4:
+    - git-clone@8: {}
+    - xcode-archive@5:
         inputs:
         - project_path: "$BITRISE_PROJECT_PATH"
         - scheme: "$BITRISE_SCHEME"
-    - cache-push@2: {}
+        - distribution_method: "$BITRISE_DISTRIBUTION_METHOD"
+        - automatic_code_signing: api-key
+        - cache_level: none
     - deploy-to-bitrise-io@2: {}
-
+  build:
+    summary: Build your Xcode project.
+    description: The workflow will first clone your Git repository, cache and
+      install your project's dependencies if any and build your project.
+    steps:
+    - git-clone@8: {}
+    - xcode-build-for-test@3:
+        inputs:
+        - project_path: "$BITRISE_PROJECT_PATH"
+        - scheme: "$BITRISE_SCHEME"
+        - destination: platform=iOS Simulator,name=iPhone 8 Plus,OS=latest
+        - cache_level: none
+    - deploy-to-bitrise-io@2: {}
+    triggers:
+      push:
+      - branch: main
+      pull_request:
+      - source_branch: "*"
+meta:
+  bitrise.io:
+    stack: osx-xcode-16.4.x
+    machine_type_id: g2.mac.large
+app:
+  envs:
+  - BITRISE_PROJECT_PATH: TestGit.xcodeproj
+    opts:
+      is_expand: false
+  - BITRISE_SCHEME: TestGit
+    opts:
+      is_expand: false
+  - BITRISE_DISTRIBUTION_METHOD: development
+    opts:
+      is_expand: false
