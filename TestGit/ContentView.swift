@@ -9,7 +9,6 @@ import SwiftUI
 //Commit1
 //Commit2
 //Commit3
-    ..
 struct ContentView: View {
     var body: some View {
         VStack {
@@ -17,8 +16,14 @@ struct ContentView: View {
                 .imageScale(.large)
                 .foregroundStyle(.tint)
             Text("Hello, world!")
+
+            main
         }
         .padding()
+    }
+
+    var main: some View {
+        Text("Test")
     }
 }
 
